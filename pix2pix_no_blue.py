@@ -16,7 +16,10 @@ from data_loader import DataLoader
 import numpy as np
 import os
 from keras import backend as K
-K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=3, inter_op_parallelism_threads=3)))
+THREADS_NO = 4 
+# K.set_session(K.tf.Session(config=
+# K.tf.ConfigProto(intra_op_parallelism_threads=THREADS_NO,
+# inter_op_parallelism_threads=THREADS_NO)))
 
 class Pix2Pix():
     def __init__(self):
@@ -169,7 +172,7 @@ class Pix2Pix():
                 # -----------------
 
                 # Train the generators
-                g_loss = self.combined.train_on_batch(imgs_A, [valid, imgs_A])
+                g_loss = self.combined.train_on_batch(imgs_B, [valid, imgs_A])
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
