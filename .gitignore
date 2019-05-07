@@ -1,0 +1,14 @@
+
+saved_model/
+
+images/
+
+datasets/
+
+__pycache__/
+
+*.jpg
+
+*.hdf5
+
+*.png
