@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 print('loading model')
-model = load_model('trained_model/model_ep-4.hdf5')
+model = load_model('saved_model/model_no_blue_ep-5-sample_no-0.hdf5')
 print('loaded')
 img = scipy.misc.imread('my_input.jpg', mode='RGB').astype(np.float)
 img = scipy.misc.imresize(img, (256,256))

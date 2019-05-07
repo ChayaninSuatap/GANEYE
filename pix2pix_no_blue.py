@@ -16,6 +16,7 @@ from data_loader import DataLoader
 import numpy as np
 import os
 from keras import backend as K
+import matplotlib.pyplot as plt
 THREADS_NO = 4 
 # K.set_session(K.tf.Session(config=
 # K.tf.ConfigProto(intra_op_parallelism_threads=THREADS_NO,
@@ -152,6 +153,10 @@ class Pix2Pix():
         valid = np.ones((batch_size,) + self.disc_patch)
         fake = np.zeros((batch_size,) + self.disc_patch)
 
+        # loss array
+        d_losses = []
+        g_losses = []
+
         for epoch in range(epochs):
             for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
 
@@ -181,6 +186,15 @@ class Pix2Pix():
                                                                         d_loss[0], 100*d_loss[1],
                                                                         g_loss[0],
                                                                         elapsed_time))
+                
+                #add loss array
+                d_losses.append(d_loss[0])
+                g_losses.append(g_loss[0])
+                plt.clf()
+                plt.plot(d_losses, label='discriminator')
+                plt.plot(g_losses, label='generator')
+                plt.draw()
+                plt.pause(0.001)
 
                 # If at save interval => save generated image samples
                 if batch_i % sample_interval == 0:
