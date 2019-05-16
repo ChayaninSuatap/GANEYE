@@ -21,7 +21,7 @@ THREADS_NO = 4
 # K.set_session(K.tf.Session(config=
 # K.tf.ConfigProto(intra_op_parallelism_threads=THREADS_NO,
 # inter_op_parallelism_threads=THREADS_NO)))
-CONTINUE=True
+CONTINUE=False
 CONTINUE_EPOCH=15
 
 class Pix2Pix():
@@ -68,9 +68,6 @@ class Pix2Pix():
 
         # By conditioning on B generate a fake version of A
         fake_A = self.generator(img_B)
-
-        # For the combined model we will only train the generator
-        self.discriminator.trainable = False
 
         # Discriminators determines validity of translated images / condition pairs
         valid = self.discriminator(fake_A)
@@ -181,8 +178,12 @@ class Pix2Pix():
                 #  Train Generator
                 # -----------------
 
+                #freeze discriminator
+                #for layer in self.discriminator.layers: layer.trainable = False
                 # Train the generators
                 g_loss = self.combined.train_on_batch(imgs_B, [valid, imgs_A])
+                #unfreeze discriminator
+                #for layer in self.discriminator.layers: layer.trainable = True
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
@@ -198,12 +199,13 @@ class Pix2Pix():
                 plt.clf()
                 plt.plot(d_losses, label='discriminator')
                 plt.plot(g_losses, label='generator')
-                plt.draw()
-                plt.pause(0.001)
+                #plt.draw()
+                #plt.pause(0.001)
 
                 # If at save interval => save generated image samples
                 if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
+                    plt.savefig('loss.png')
                     #save model
                     self.combined.save('saved_model/model_no_blue_ep-%d-sample_no-%d.hdf5' % (epoch,batch_i, ))
 
