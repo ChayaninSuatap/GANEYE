@@ -7,7 +7,7 @@ from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
+from keras.models import Sequential, Model, load_model
 from keras.optimizers import Adam
 import datetime
 import matplotlib.pyplot as plt
@@ -21,6 +21,8 @@ THREADS_NO = 4
 # K.set_session(K.tf.Session(config=
 # K.tf.ConfigProto(intra_op_parallelism_threads=THREADS_NO,
 # inter_op_parallelism_threads=THREADS_NO)))
+CONTINUE=True
+CONTINUE_EPOCH=15
 
 class Pix2Pix():
     def __init__(self):
@@ -77,6 +79,8 @@ class Pix2Pix():
         self.combined.compile(loss=['mse', 'mae'],
                               loss_weights=[1, 100],
                               optimizer=optimizer)
+        if CONTINUE :
+            self.combined = load_model('saved_model/model_no_blue_ep-15-sample_no-0.hdf5')
 
     def build_generator(self):
         """U-Net Generator"""
@@ -158,6 +162,7 @@ class Pix2Pix():
         g_losses = []
 
         for epoch in range(epochs):
+            if CONTINUE : epoch += CONTINUE_EPOCH
             for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
 
                 # ---------------------
