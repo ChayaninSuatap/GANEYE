@@ -21,8 +21,8 @@ THREADS_NO = 4
 # K.set_session(K.tf.Session(config=
 # K.tf.ConfigProto(intra_op_parallelism_threads=THREADS_NO,
 # inter_op_parallelism_threads=THREADS_NO)))
-CONTINUE=False
-CONTINUE_EPOCH=15
+CONTINUE=True
+CONTINUE_EPOCH=18
 
 class Pix2Pix():
     def __init__(self):
@@ -77,7 +77,7 @@ class Pix2Pix():
                               loss_weights=[1, 100],
                               optimizer=optimizer)
         if CONTINUE :
-            self.combined = load_model('saved_model/model_no_blue_ep-15-sample_no-0.hdf5')
+            self.combined = load_model('saved_model/model_no_blue_ep-18-sample_no-0.hdf5')
 
     def build_generator(self):
         """U-Net Generator"""
