@@ -18,12 +18,11 @@ import os
 from keras import backend as K
 import matplotlib.pyplot as plt
 
-CONTINUE_EPOCH=8
-
 class Pix2Pix():
-    def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn=''):
+    def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='', save_path='saved_model'):
         #pre setting
         self.init_epoch = init_epoch
+        self.save_path = save_path
         # Input shape
         self.img_rows = 256
         self.img_cols = 256
@@ -75,8 +74,8 @@ class Pix2Pix():
                               loss_weights=[1, 100],
                               optimizer=optimizer)
         if init_epoch>0 :
-            self.generator.load_weights('saved_model/%s' % (gen_weights_fn,))
-            self.discriminator.load_weights('saved_model/%s' % (dis_weights_fn,))
+            self.generator.load_weights('%s/%s' % (self.save_path, gen_weights_fn,))
+            self.discriminator.load_weights('%s/%s' % (self.save_path, dis_weights_fn,))
 
     def build_generator(self):
         """U-Net Generator"""
@@ -158,7 +157,7 @@ class Pix2Pix():
         g_losses = []
 
         for epoch in range(epochs):
-            epoch += self.init_epoch
+            epoch += self.init_epoch + 1
             for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
 
                 # ---------------------
@@ -204,10 +203,10 @@ class Pix2Pix():
                 # If at save interval => save generated image samples
                 if batch_i % sample_interval == 0:
                     self.sample_images(epoch, batch_i)
-                    plt.savefig('loss.png')
+                    plt.savefig(self.save_path + '/loss.png')
                     #save model
-                    self.discriminator.save_weights('saved_model/no_blue_dis_ep-%d-sample-%d.hdf5' % (epoch,batch_i, ))
-                    self.generator.save_weights('saved_model/no_blue_gen_ep-%d-sample-%d.hdf5' % (epoch,batch_i, ))
+                    self.discriminator.save_weights('%s/no_blue_dis_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
+                    self.generator.save_weights('%s/no_blue_gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
 
     def sample_images(self, epoch, batch_i):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
@@ -233,7 +232,6 @@ class Pix2Pix():
         fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
 
-
 if __name__ == '__main__':
-    gan = Pix2Pix(init_epoch=CONTINUE_EPOCH, gen_weights_fn='no_blue_gen_ep-8-sample-0.hdf5', dis_weights_fn='no_blue_dis_ep-8-sample-0.hdf5')
+    gan = Pix2Pix(init_epoch=15, gen_weights_fn='no_blue_gen_ep-15-sample-200.hdf5', dis_weights_fn='no_blue_dis_ep-15-sample-200.hdf5')
     gan.train(epochs=200, batch_size=1, sample_interval=200)

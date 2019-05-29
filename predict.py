@@ -5,8 +5,8 @@ import numpy as np
 from pix2pix_no_blue import Pix2Pix
 
 print('loading model')
-model = load_model('saved_model/model_no_blue_ep-4-sample_no-0.hdf5')
-
+o = Pix2Pix(15, 'no_blue_gen_ep-15-sample-200.hdf5', 'no_blue_dis_ep-15-sample-200.hdf5')
+model = o.combined
 print('loaded')
 img = scipy.misc.imread('my_input_2.jpg', mode='RGB').astype(np.float)
 img = scipy.misc.imresize(img, (256,256))
