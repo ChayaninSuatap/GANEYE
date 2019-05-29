@@ -1,4 +1,5 @@
 import scipy
+import scipy.misc
 from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt

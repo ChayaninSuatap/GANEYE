@@ -233,5 +233,5 @@ class Pix2Pix():
         plt.close()
 
 if __name__ == '__main__':
-    gan = Pix2Pix(init_epoch=15, gen_weights_fn='no_blue_gen_ep-15-sample-200.hdf5', dis_weights_fn='no_blue_dis_ep-15-sample-200.hdf5')
+    gan = Pix2Pix(init_epoch=17, gen_weights_fn='no_blue_gen_ep-17-sample-0.hdf5', dis_weights_fn='no_blue_dis_ep-17-sample-0.hdf5')
     gan.train(epochs=200, batch_size=1, sample_interval=200)
