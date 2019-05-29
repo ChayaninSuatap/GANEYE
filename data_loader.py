@@ -1,5 +1,6 @@
 import scipy
 import scipy.misc
+from PIL import Image
 from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
@@ -76,4 +77,60 @@ class DataLoader():
 
 
     def imread(self, path):
-        return scipy.misc.imread(path, mode='RGB').astype(np.float)
+        im = Image.open(path)
+        return fromimage(im, mode='RGB').astype(np.float)
+        # return scipy.misc.imread(path, mode='RGB').astype(np.float)
+
+def fromimage(im, flatten=False, mode=None):
+    """
+    Return a copy of a PIL image as a numpy array.
+
+    This function is only available if Python Imaging Library (PIL) is installed.
+
+    Parameters
+    ----------
+    im : PIL image
+        Input image.
+    flatten : bool
+        If true, convert the output to grey-scale.
+    mode : str, optional
+        Mode to convert image to, e.g. ``'RGB'``.  See the Notes of the
+        `imread` docstring for more details.
+
+    Returns
+    -------
+    fromimage : ndarray
+        The different colour bands/channels are stored in the
+        third dimension, such that a grey-image is MxN, an
+        RGB-image MxNx3 and an RGBA-image MxNx4.
+
+    """
+    if not Image.isImageType(im):
+        raise TypeError("Input is not a PIL image.")
+
+    if mode is not None:
+        if mode != im.mode:
+            im = im.convert(mode)
+    elif im.mode == 'P':
+        # Mode 'P' means there is an indexed "palette".  If we leave the mode
+        # as 'P', then when we do `a = array(im)` below, `a` will be a 2-D
+        # containing the indices into the palette, and not a 3-D array
+        # containing the RGB or RGBA values.
+        if 'transparency' in im.info:
+            im = im.convert('RGBA')
+        else:
+            im = im.convert('RGB')
+
+    if flatten:
+        im = im.convert('F')
+    elif im.mode == '1':
+        # Workaround for crash in PIL. When im is 1-bit, the call array(im)
+        # can cause a seg. fault, or generate garbage. See
+        # https://github.com/scipy/scipy/issues/2138 and
+        # https://github.com/python-pillow/Pillow/issues/350.
+        #
+        # This converts im from a 1-bit image to an 8-bit image.
+        im = im.convert('L')
+
+    a = np.array(im)
+    return a
