@@ -69,9 +69,12 @@ class DataLoader():
 
                 #noise
                 if add_noise:
-                    noise_range = random.randint(0,30)
-                    noise_np = np.random.randint(-noise_range,noise_range,(256,256,3))
+                    #apply noise
+                    noise_range = random.randint(0,60)
+                    noise_np = np.random.randint(0,noise_range,(256,256,3))
+                    noise_np -= 30
                     img_A = img_A + noise_np
+                    #apply noise : flip left right
                     if np.random.random() > 0.5 :
                         img_A = np.fliplr(img_A)
                         img_B = np.fliplr(img_B)
