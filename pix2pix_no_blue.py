@@ -214,7 +214,9 @@ class Pix2Pix():
                         self.generator.save_weights('%s/gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
                     else:
                         self.discriminator.save_weights('%s/dis.hdf5' % (self.save_path, ))
+                        self.discriminator.save_weights('%s/dis_backup.hdf5' % (self.save_path, ))
                         self.generator.save_weights('%s/gen.hdf5' % (self.save_path, ))                        
+                        self.generator.save_weights('%s/gen_backup.hdf5' % (self.save_path, ))                        
 
     def sample_images(self, epoch, batch_i, train_on_colab=False):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
