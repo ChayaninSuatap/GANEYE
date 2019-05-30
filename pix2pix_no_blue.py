@@ -191,7 +191,7 @@ class Pix2Pix():
                                                                         batch_i, self.data_loader.n_batches,
                                                                         d_loss[0], 100*d_loss[1],
                                                                         g_loss[0],
-                                                                        elapsed_time))
+                                                                        elapsed_time), end="\r")
                 
                 #add loss array
                 d_losses.append(d_loss[0])
@@ -205,6 +205,7 @@ class Pix2Pix():
 
                 # If at save interval => save generated image samples
                 if (sample_interval!=None and batch_i % sample_interval == 0) or (epoch_interval!=None and epoch % epoch_interval == 0 and batch_i==0):
+                    print('')
                     self.sample_images(epoch, batch_i, train_on_colab)
                     plt.savefig(self.save_path + '/loss.png')
                     #save model
