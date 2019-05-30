@@ -147,7 +147,7 @@ class Pix2Pix():
 
         return Model([img_A, img_B], validity)
 
-    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False):
+    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False, add_noise=False):
 
         start_time = datetime.datetime.now()
 
@@ -161,7 +161,7 @@ class Pix2Pix():
 
         for epoch in range(epochs):
             epoch += self.init_epoch + 1
-            for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
+            for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size, add_noise=add_noise)):
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
@@ -249,4 +249,4 @@ class Pix2Pix():
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes', save_path='saved_model_eyes')
-    gan.train(epochs=200, batch_size=1, sample_interval=5, train_on_colab=True)
+    gan.train(epochs=200, batch_size=1, epoch_interval=5, train_on_colab=True, add_noise=True)

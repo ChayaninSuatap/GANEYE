@@ -46,7 +46,7 @@ class DataLoader():
 
         return imgs_A, imgs_B
 
-    def load_batch(self, batch_size=1, is_testing=False):
+    def load_batch(self, batch_size=1, is_testing=False, add_noise=False):
         data_type = "train" if not is_testing else "val"
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
         random.shuffle(path)
@@ -67,7 +67,12 @@ class DataLoader():
                 img_A = pilutil.imresize(img_A, self.img_res)
                 img_B = pilutil.imresize(img_B, self.img_res)
 
-                if not is_testing and np.random.random() > 0.5:
+                #noise
+                if add_noise:
+                    noise_range = random.randint(0,30)
+                    noise_np = np.random.randint(-noise_range,noise_range,(256,256,3))
+                    img_A = img_A + noise_np
+                    if np.random.random() > 0.5 :
                         img_A = np.fliplr(img_A)
                         img_B = np.fliplr(img_B)
 
