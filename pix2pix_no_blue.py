@@ -144,7 +144,7 @@ class Pix2Pix():
 
         return Model(img_A, validity)
 
-    def train(self, epochs, batch_size=1, sample_interval=50):
+    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None):
 
         start_time = datetime.datetime.now()
 
@@ -201,7 +201,7 @@ class Pix2Pix():
                 #plt.pause(0.001)
 
                 # If at save interval => save generated image samples
-                if batch_i % sample_interval == 0:
+                if (sample_interval!=None and batch_i % sample_interval == 0) or (epoch_interval!=None and epoch % epoch_interval == 0 and batch_i==0):
                     self.sample_images(epoch, batch_i)
                     plt.savefig(self.save_path + '/loss.png')
                     #save model
@@ -235,4 +235,4 @@ class Pix2Pix():
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes', save_path='saved_model_eyes')
-    gan.train(epochs=200, batch_size=1, sample_interval=200)
+    gan.train(epochs=200, batch_size=1, epoch_interval=20)
