@@ -5,6 +5,7 @@ from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import pilutil
+import random
 
 class DataLoader():
     def __init__(self, dataset_name, img_res=(128, 128)):
@@ -48,6 +49,7 @@ class DataLoader():
     def load_batch(self, batch_size=1, is_testing=False):
         data_type = "train" if not is_testing else "val"
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
+        random.shuffle(path)
 
         self.n_batches = int(len(path) / batch_size)
 
