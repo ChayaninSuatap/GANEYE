@@ -19,7 +19,7 @@ from keras import backend as K
 import matplotlib.pyplot as plt
 
 class Pix2Pix():
-    def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='', save_path='saved_model'):
+    def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='', save_path='saved_model', dataset_name='facades'):
         #pre setting
         self.init_epoch = init_epoch
         self.save_path = save_path
@@ -30,7 +30,7 @@ class Pix2Pix():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
         # Configure data loader
-        self.dataset_name = 'facades'
+        self.dataset_name = dataset_name
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.img_rows, self.img_cols))
 
@@ -233,5 +233,6 @@ class Pix2Pix():
         plt.close()
 
 if __name__ == '__main__':
-    gan = Pix2Pix(init_epoch=21, gen_weights_fn='no_blue_gen_ep-22-sample-0.hdf5', dis_weights_fn='no_blue_dis_ep-22-sample-0.hdf5')
+    gan = Pix2Pix(init_epoch=0,
+        dataset_name='eyes', save_path='saved_model_eyes')
     gan.train(epochs=200, batch_size=1, sample_interval=200)
