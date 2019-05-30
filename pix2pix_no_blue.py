@@ -67,7 +67,7 @@ class Pix2Pix():
         fake_A = self.generator(img_B)
 
         # Discriminators determines validity of translated images / condition pairs
-        valid = self.discriminator(fake_A)
+        valid = self.discriminator([fake_A, img_B])
 
         self.combined = Model(inputs=img_B, outputs=[valid, fake_A])
         self.combined.compile(loss=['mse', 'mae'],
@@ -134,15 +134,18 @@ class Pix2Pix():
             return d
 
         img_A = Input(shape=self.img_shape)
+        img_B = Input(shape=self.img_shape)
 
-        d1 = d_layer(img_A, self.df, bn=False)
+        combined_imgs = Concatenate(axis=-1)([img_A, img_B])
+
+        d1 = d_layer(combined_imgs, self.df, bn=False)
         d2 = d_layer(d1, self.df*2)
         d3 = d_layer(d2, self.df*4)
         d4 = d_layer(d3, self.df*8)
 
         validity = Conv2D(1, kernel_size=4, strides=1, padding='same')(d4)
 
-        return Model(img_A, validity)
+        return Model([img_A, img_B], validity)
 
     def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None):
 
@@ -159,7 +162,6 @@ class Pix2Pix():
         for epoch in range(epochs):
             epoch += self.init_epoch + 1
             for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
-
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
@@ -168,8 +170,8 @@ class Pix2Pix():
                 fake_A = self.generator.predict(imgs_B)
 
                 # Train the discriminators (original images = real / generated = Fake)
-                d_loss_real = self.discriminator.train_on_batch(imgs_A, valid)
-                d_loss_fake = self.discriminator.train_on_batch(fake_A, fake)
+                d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], valid)
+                d_loss_fake = self.discriminator.train_on_batch([fake_A, imgs_B], fake)
                 d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
                 # -----------------

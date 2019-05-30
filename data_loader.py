@@ -51,8 +51,9 @@ class DataLoader():
 
         self.n_batches = int(len(path) / batch_size)
 
-        for i in range(self.n_batches-1):
+        for i in range(self.n_batches):
             batch = path[i*batch_size:(i+1)*batch_size]
+
             imgs_A, imgs_B = [], []
             for img in batch:
                 img = pilutil.imread(img)
