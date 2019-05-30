@@ -147,7 +147,7 @@ class Pix2Pix():
 
         return Model([img_A, img_B], validity)
 
-    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None):
+    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False):
 
         start_time = datetime.datetime.now()
 
@@ -199,18 +199,23 @@ class Pix2Pix():
                 plt.clf()
                 plt.plot(d_losses, label='discriminator')
                 plt.plot(g_losses, label='generator')
+                plt.title('epoch ' + str(epoch) + ' batch no ' + str(batch_i))
                 #plt.draw()
                 #plt.pause(0.001)
 
                 # If at save interval => save generated image samples
                 if (sample_interval!=None and batch_i % sample_interval == 0) or (epoch_interval!=None and epoch % epoch_interval == 0 and batch_i==0):
-                    self.sample_images(epoch, batch_i)
+                    self.sample_images(epoch, batch_i, train_on_colab)
                     plt.savefig(self.save_path + '/loss.png')
                     #save model
-                    self.discriminator.save_weights('%s/no_blue_dis_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
-                    self.generator.save_weights('%s/no_blue_gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
+                    if not train_on_colab:
+                        self.discriminator.save_weights('%s/dis_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
+                        self.generator.save_weights('%s/gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
+                    else:
+                        self.discriminator.save_weights('%s/dis.hdf5' % (self.save_path, ))
+                        self.generator.save_weights('%s/gen.hdf5' % (self.save_path, ))                        
 
-    def sample_images(self, epoch, batch_i):
+    def sample_images(self, epoch, batch_i, train_on_colab=False):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 3, 3
 
@@ -231,10 +236,14 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
+        if train_on_colab:
+            fn = '%s/validate.png' % (self.save_path,)
+        else:
+            fn = "images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i)
+        fig.savefig(fn)
         plt.close()
 
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes', save_path='saved_model_eyes')
-    gan.train(epochs=200, batch_size=1, epoch_interval=20)
+    gan.train(epochs=200, batch_size=1, sample_interval=5, train_on_colab=True)
