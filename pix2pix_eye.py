@@ -151,7 +151,7 @@ class Pix2Pix():
 
         return Model([img_A, img_B], validity)
 
-    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False, add_noise=False):
+    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False, add_noise=False, colab_epoch_interval=None):
 
         start_time = datetime.datetime.now()
 
@@ -169,7 +169,6 @@ class Pix2Pix():
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
-
                 # Condition on B and generate a translated version
                 fake_A = self.generator.predict(imgs_B)
 
@@ -181,13 +180,7 @@ class Pix2Pix():
                 # -----------------
                 #  Train Generator
                 # -----------------
-
-                #freeze discriminator
-                #for layer in self.discriminator.layers: layer.trainable = False
-                # Train the generators
                 g_loss = self.combined.train_on_batch(imgs_B, [valid, imgs_A])
-                #unfreeze discriminator
-                #for layer in self.discriminator.layers: layer.trainable = True
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
@@ -204,8 +197,6 @@ class Pix2Pix():
                 plt.plot(d_losses, label='discriminator')
                 plt.plot(g_losses, label='generator')
                 plt.title('epoch ' + str(epoch) + ' batch no ' + str(batch_i))
-                #plt.draw()
-                #plt.pause(0.001)
 
                 # If at save interval => save generated image samples
                 if (sample_interval!=None and batch_i % sample_interval == 0) or (epoch_interval!=None and epoch % epoch_interval == 0 and batch_i==0):
@@ -220,7 +211,11 @@ class Pix2Pix():
                         self.discriminator.save_weights('%s/dis.hdf5' % (self.save_path, ))
                         self.discriminator.save_weights('%s/dis_backup.hdf5' % (self.save_path, ))
                         self.generator.save_weights('%s/gen.hdf5' % (self.save_path, ))                        
-                        self.generator.save_weights('%s/gen_backup.hdf5' % (self.save_path, ))                        
+                        self.generator.save_weights('%s/gen_backup.hdf5' % (self.save_path, ))
+                        #save model with number
+                        if colab_epoch_interval != None and epoch % colab_epoch_interval == 0:
+                            self.discriminator.save_weights('%s/dis_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
+                            self.generator.save_weights('%s/gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, )) 
 
     def sample_images(self, epoch, batch_i, train_on_colab=False):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
@@ -253,4 +248,5 @@ class Pix2Pix():
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes', save_path='saved_model_eyes', dropout=0.2)
-    gan.train(epochs=200, batch_size=1, epoch_interval=5, train_on_colab=True, add_noise=True)
+    gan.train(epochs=200, batch_size=1, epoch_interval=5, train_on_colab=True, add_noise=True,
+        colab_epoch_interval=20)
