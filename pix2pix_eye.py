@@ -184,11 +184,12 @@ class Pix2Pix():
 
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
+                print('',end='\r')
                 print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %3d%%] [G loss: %f] time: %s" % (epoch, epochs,
                                                                         batch_i, self.data_loader.n_batches,
                                                                         d_loss[0], 100*d_loss[1],
                                                                         g_loss[0],
-                                                                        elapsed_time), end="\r")
+                                                                        elapsed_time), end='')
                 
                 #add loss array
                 d_losses.append(d_loss[0])
@@ -215,7 +216,7 @@ class Pix2Pix():
                         if colab_epoch_interval != None and epoch % colab_epoch_interval == 0:
                             self.discriminator.save_weights('%s/dis_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
                             self.generator.save_weights('%s/gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, )) 
-                    print('model saved')
+                    print('\nmodel saved')
 
     def sample_images(self, epoch, batch_i, train_on_colab=False):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
@@ -249,4 +250,4 @@ if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes', save_path='saved_model_eyes', dropout=0.2)
     gan.train(epochs=200, batch_size=1, epoch_interval=5, train_on_colab=True, add_noise=True,
-        colab_epoch_interval=20)
+        colab_epoch_interval=5)
