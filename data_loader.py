@@ -46,7 +46,7 @@ class DataLoader():
 
         return imgs_A, imgs_B
 
-    def load_batch(self, batch_size=1, is_testing=False, add_noise=False):
+    def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False):
         data_type = "train" if not is_testing else "val"
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
         random.shuffle(path)
@@ -70,13 +70,21 @@ class DataLoader():
                 #noise
                 if add_noise:
                     #apply noise
-                    noise_range = random.randint(1,30)
+                    noise_range = random.randint(1,60)
                     noise_np = np.random.randint(-noise_range,noise_range,(256,256,3))
                     img_A = img_A + noise_np
                     #apply noise : flip left right
                     if np.random.random() > 0.5 :
                         img_A = np.fliplr(img_A)
                         img_B = np.fliplr(img_B)
+                    if show_dataset:
+                        o = np.zeros(shape=(256, 512, 3))
+                        o[:256, :256,:] = img_A[:256,:256,:]
+                        o[:256, 256:,:] = img_B[:256,:256,:]
+                        o/=256
+                        
+                        plt.imshow(o)
+                        plt.show()
 
                 imgs_A.append(img_A)
                 imgs_B.append(img_B)
