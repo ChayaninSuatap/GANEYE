@@ -2,7 +2,7 @@ from keras.models import load_model
 import scipy
 import matplotlib.pyplot as plt
 import numpy as np
-from pix2pix_no_blue import Pix2Pix
+from pix2pix_eye import Pix2Pix
 
 print('loading model')
 o = Pix2Pix(21, 'no_blue_gen_ep-22-sample-0.hdf5', 'no_blue_dis_ep-22-sample-0.hdf5')

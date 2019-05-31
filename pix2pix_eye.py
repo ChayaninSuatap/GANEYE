@@ -19,7 +19,7 @@ from keras import backend as K
 import matplotlib.pyplot as plt
 
 class Pix2Pix():
-    def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='', save_path='saved_model', dataset_name='facades'):
+    def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='', save_path='saved_model', dataset_name='facades', dropout=0):
         #pre setting
         self.init_epoch = init_epoch
         self.save_path = save_path
@@ -46,7 +46,7 @@ class Pix2Pix():
         optimizer = Adam(0.0002, 0.5)
 
         # Build and compile the discriminator
-        self.discriminator = self.build_discriminator()
+        self.discriminator = self.build_discriminator(dropout=dropout)
         self.discriminator.compile(loss='mse',
             optimizer=optimizer,
             metrics=['accuracy'])
@@ -57,7 +57,7 @@ class Pix2Pix():
         #-------------------------
 
         # Build the generator
-        self.generator = self.build_generator()
+        self.generator = self.build_generator(dropout=dropout)
 
         # Input images and their conditioning images
         # img_A = Input(shape=self.img_shape)
@@ -77,15 +77,17 @@ class Pix2Pix():
             self.generator.load_weights('%s/%s' % (self.save_path, gen_weights_fn,))
             self.discriminator.load_weights('%s/%s' % (self.save_path, dis_weights_fn,))
 
-    def build_generator(self):
+    def build_generator(self, dropout=0):
         """U-Net Generator"""
 
-        def conv2d(layer_input, filters, f_size=4, bn=True):
+        def conv2d(layer_input, filters, f_size=4, bn=True, dropout_rate=0):
             """Layers used during downsampling"""
             d = Conv2D(filters, kernel_size=f_size, strides=2, padding='same')(layer_input)
             d = LeakyReLU(alpha=0.2)(d)
             if bn:
                 d = BatchNormalization(momentum=0.8)(d)
+            if dropout_rate:
+                d = Dropout(dropout_rate)(d) 
             return d
 
         def deconv2d(layer_input, skip_input, filters, f_size=4, dropout_rate=0):
@@ -102,35 +104,37 @@ class Pix2Pix():
         d0 = Input(shape=self.img_shape)
 
         # Downsampling
-        d1 = conv2d(d0, self.gf, bn=False)
-        d2 = conv2d(d1, self.gf*2)
-        d3 = conv2d(d2, self.gf*4)
-        d4 = conv2d(d3, self.gf*8)
-        d5 = conv2d(d4, self.gf*8)
-        d6 = conv2d(d5, self.gf*8)
-        d7 = conv2d(d6, self.gf*8)
+        d1 = conv2d(d0, self.gf, bn=False, dropout_rate=dropout)
+        d2 = conv2d(d1, self.gf*2, dropout_rate=dropout)
+        d3 = conv2d(d2, self.gf*4, dropout_rate=dropout)
+        d4 = conv2d(d3, self.gf*8, dropout_rate=dropout)
+        d5 = conv2d(d4, self.gf*8, dropout_rate=dropout)
+        d6 = conv2d(d5, self.gf*8, dropout_rate=dropout)
+        d7 = conv2d(d6, self.gf*8, dropout_rate=dropout)
 
         # Upsampling
-        u1 = deconv2d(d7, d6, self.gf*8)
-        u2 = deconv2d(u1, d5, self.gf*8)
-        u3 = deconv2d(u2, d4, self.gf*8)
-        u4 = deconv2d(u3, d3, self.gf*4)
-        u5 = deconv2d(u4, d2, self.gf*2)
-        u6 = deconv2d(u5, d1, self.gf)
+        u1 = deconv2d(d7, d6, self.gf*8, dropout_rate=dropout)
+        u2 = deconv2d(u1, d5, self.gf*8, dropout_rate=dropout)
+        u3 = deconv2d(u2, d4, self.gf*8, dropout_rate=dropout)
+        u4 = deconv2d(u3, d3, self.gf*4, dropout_rate=dropout)
+        u5 = deconv2d(u4, d2, self.gf*2, dropout_rate=dropout)
+        u6 = deconv2d(u5, d1, self.gf  , dropout_rate=dropout)
 
         u7 = UpSampling2D(size=2)(u6)
         output_img = Conv2D(self.channels, kernel_size=4, strides=1, padding='same', activation='tanh')(u7)
 
         return Model(d0, output_img)
 
-    def build_discriminator(self):
+    def build_discriminator(self, dropout=0):
 
-        def d_layer(layer_input, filters, f_size=4, bn=True):
+        def d_layer(layer_input, filters, f_size=4, bn=True, dropout_rate=0):
             """Discriminator layer"""
             d = Conv2D(filters, kernel_size=f_size, strides=2, padding='same')(layer_input)
             d = LeakyReLU(alpha=0.2)(d)
             if bn:
                 d = BatchNormalization(momentum=0.8)(d)
+            if dropout_rate:
+                d = Dropout(dropout_rate)(d)
             return d
 
         img_A = Input(shape=self.img_shape)
@@ -138,10 +142,10 @@ class Pix2Pix():
 
         combined_imgs = Concatenate(axis=-1)([img_A, img_B])
 
-        d1 = d_layer(combined_imgs, self.df, bn=False)
-        d2 = d_layer(d1, self.df*2)
-        d3 = d_layer(d2, self.df*4)
-        d4 = d_layer(d3, self.df*8)
+        d1 = d_layer(combined_imgs, self.df, bn=False, dropout_rate=dropout)
+        d2 = d_layer(d1, self.df*2, dropout_rate=dropout)
+        d3 = d_layer(d2, self.df*4, dropout_rate=dropout)
+        d4 = d_layer(d3, self.df*8, dropout_rate=dropout)
 
         validity = Conv2D(1, kernel_size=4, strides=1, padding='same')(d4)
 
@@ -248,5 +252,5 @@ class Pix2Pix():
 
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
-        dataset_name='eyes', save_path='saved_model_eyes')
+        dataset_name='eyes', save_path='saved_model_eyes', dropout=0.2)
     gan.train(epochs=200, batch_size=1, epoch_interval=5, train_on_colab=True, add_noise=True)
