@@ -200,7 +200,6 @@ class Pix2Pix():
 
                 # If at save interval => save generated image samples
                 if (sample_interval!=None and batch_i % sample_interval == 0) or (epoch_interval!=None and epoch % epoch_interval == 0 and batch_i==0):
-                    print('')
                     self.sample_images(epoch, batch_i, train_on_colab)
                     plt.savefig(self.save_path + '/loss.png')
                     #save model
@@ -216,6 +215,7 @@ class Pix2Pix():
                         if colab_epoch_interval != None and epoch % colab_epoch_interval == 0:
                             self.discriminator.save_weights('%s/dis_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
                             self.generator.save_weights('%s/gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, )) 
+                    print('model saved')
 
     def sample_images(self, epoch, batch_i, train_on_colab=False):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
