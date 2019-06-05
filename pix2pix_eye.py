@@ -19,7 +19,7 @@ from keras import backend as K
 import matplotlib.pyplot as plt
 
 class Pix2Pix():
-    def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='', save_path='saved_model', dataset_name='facades', dropout=0):
+    def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='', save_path='saved_model', dataset_name='facades', dropout=0, load_for_predict=False):
         #pre setting
         self.init_epoch = init_epoch
         self.save_path = save_path
@@ -74,7 +74,7 @@ class Pix2Pix():
         self.combined.compile(loss=['mse', 'mae'],
                               loss_weights=[1, 100],
                               optimizer=optimizer)
-        if init_epoch>0 :
+        if init_epoch>0 or load_for_predict:
             self.generator.load_weights('%s/%s' % (self.save_path, gen_weights_fn,))
             self.discriminator.load_weights('%s/%s' % (self.save_path, dis_weights_fn,))
 
