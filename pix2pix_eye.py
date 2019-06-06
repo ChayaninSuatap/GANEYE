@@ -27,7 +27,9 @@ class Pix2Pix():
         self.img_rows = 256
         self.img_cols = 256
         self.channels = 3
+        self.channels_blue = 4
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
+        self.img_shape_blue = (self.img_rows, self.img_cols, self.channels_blue)
 
         # Configure data loader
         self.dataset_name = dataset_name
@@ -61,7 +63,7 @@ class Pix2Pix():
 
         # Input images and their conditioning images
         # img_A = Input(shape=self.img_shape)
-        img_B = Input(shape=self.img_shape)
+        img_B = Input(shape=self.img_shape_blue)
 
         # By conditioning on B generate a fake version of A
         fake_A = self.generator(img_B)
@@ -102,7 +104,7 @@ class Pix2Pix():
             return u
 
         # Image input
-        d0 = Input(shape=self.img_shape)
+        d0 = Input(shape=self.img_shape_blue)
 
         # Downsampling
         d1 = conv2d(d0, self.gf, bn=False, dropout_rate=dropout)
@@ -139,7 +141,7 @@ class Pix2Pix():
             return d
 
         img_A = Input(shape=self.img_shape)
-        img_B = Input(shape=self.img_shape)
+        img_B = Input(shape=self.img_shape_blue)
 
         combined_imgs = Concatenate(axis=-1)([img_A, img_B])
 
@@ -166,7 +168,9 @@ class Pix2Pix():
 
         for epoch in range(epochs):
             epoch += self.init_epoch + 1
-            for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size, add_noise=add_noise)):
+            for batch_i, (imgs_A, imgs_B, labels) in enumerate(self.data_loader.load_batch(batch_size, add_noise=add_noise)):
+                #mode blue img (imgs_B)
+                imgs_B = self.make_imgb_with_label(imgs_B, labels)
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
@@ -223,8 +227,9 @@ class Pix2Pix():
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 3, 3
 
-        imgs_A, imgs_B = self.data_loader.load_data(batch_size=3, is_testing=True)
-        fake_A = self.generator.predict(imgs_B)
+        imgs_A, imgs_B, labels = self.data_loader.load_data(batch_size=3, is_testing=True)
+        tobepred = self.make_imgb_with_label(imgs_B, labels)
+        fake_A = self.generator.predict(tobepred)
 
         gen_imgs = np.concatenate([imgs_B, fake_A, imgs_A])
 
@@ -246,6 +251,16 @@ class Pix2Pix():
             fn = "images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i)
         fig.savefig(fn)
         plt.close()
+
+    def make_imgb_with_label(self, imgs_B, labels):
+        ts = [] ###################### label is arrayyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+        for imgb, label in zip(imgs_B, labels):
+            t = np.zeros(shape=self.img_shape_blue, dtype=np.float)
+            # print(t.shape, imgb.shape)
+            t[:self.img_rows, :self.img_cols, 0:2] = imgb[:self.img_rows, :self.img_cols, 0:2]
+            t[:self.img_rows, :self.img_cols, 3] = label
+            ts.append(t)
+        return np.array(ts)
 
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,

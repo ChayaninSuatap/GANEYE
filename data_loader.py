@@ -23,6 +23,7 @@ class DataLoader():
 
         imgs_A = []
         imgs_B = []
+        labels = []
         for img_path in batch_images:
             img = self.imread(img_path)
 
@@ -40,11 +41,16 @@ class DataLoader():
 
             imgs_A.append(img_A)
             imgs_B.append(img_B)
+            img_path = img_path.split('\\')[-1]
+            if img_path[0] == '0':
+                labels.append(0)
+            elif img_path[0] == '1':
+                labels.append(1)
 
         imgs_A = np.array(imgs_A)/127.5 - 1.
         imgs_B = np.array(imgs_B)/127.5 - 1.
 
-        return imgs_A, imgs_B
+        return imgs_A, imgs_B, labels
 
     def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False):
         data_type = "train" if not is_testing else "val"
@@ -56,9 +62,9 @@ class DataLoader():
         for i in range(self.n_batches):
             batch = path[i*batch_size:(i+1)*batch_size]
 
-            imgs_A, imgs_B = [], []
-            for img in batch:
-                img = pilutil.imread(img)
+            imgs_A, imgs_B, labels = [], [], []
+            for fn in batch:
+                img = pilutil.imread(fn)
                 h, w, _ = img.shape
                 half_w = int(w/2)
                 img_A = img[:, :half_w, :]
@@ -86,13 +92,19 @@ class DataLoader():
                         plt.imshow(o)
                         plt.show()
 
+                #add in batch
                 imgs_A.append(img_A)
                 imgs_B.append(img_B)
+                fn = fn.split('\\')[-1]
+                if fn[0] == '0' :
+                    labels.append(0)
+                else:
+                    labels.append(1)
 
             imgs_A = np.array(imgs_A)/127.5 - 1.
             imgs_B = np.array(imgs_B)/127.5 - 1.
 
-            yield imgs_A, imgs_B
+            yield imgs_A, imgs_B, labels
 
 
     def imread(self, path):
