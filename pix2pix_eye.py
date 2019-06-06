@@ -168,7 +168,7 @@ class Pix2Pix():
 
         for epoch in range(epochs):
             epoch += self.init_epoch + 1
-            for batch_i, (imgs_A, imgs_B, labels) in enumerate(self.data_loader.load_batch(batch_size, add_noise=add_noise)):
+            for batch_i, (imgs_A, imgs_B, labels) in enumerate(self.data_loader.load_batch(batch_size, add_noise=add_noise, use_colab=train_on_colab)):
                 #mode blue img (imgs_B)
                 imgs_B = self.make_imgb_with_label(imgs_B, labels)
                 # ---------------------
@@ -227,7 +227,7 @@ class Pix2Pix():
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 3, 3
 
-        imgs_A, imgs_B, labels = self.data_loader.load_data(batch_size=3, is_testing=True)
+        imgs_A, imgs_B, labels = self.data_loader.load_data(batch_size=3, is_testing=True, use_colab=train_on_colab)
         tobepred = self.make_imgb_with_label(imgs_B, labels)
         fake_A = self.generator.predict(tobepred)
 
