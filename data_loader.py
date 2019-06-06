@@ -12,7 +12,7 @@ class DataLoader():
         self.dataset_name = dataset_name
         self.img_res = img_res
 
-    def load_data(self, batch_size=1, is_testing=False):
+    def load_data(self, batch_size=1, is_testing=False, use_colab=False):
         data_type = "train" if not is_testing else "test"
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
 
@@ -41,7 +41,7 @@ class DataLoader():
 
             imgs_A.append(img_A)
             imgs_B.append(img_B)
-            img_path = img_path.split('\\')[-1]
+            img_path = img_path.split('\\')[-1] if not use_colab else img_path.split('/')[-1]
             print(img_path)
             if img_path[0] == '0':
                 labels.append(0)
@@ -53,7 +53,7 @@ class DataLoader():
 
         return imgs_A, imgs_B, labels
 
-    def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False):
+    def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False, use_colab=False):
         data_type = "train" if not is_testing else "val"
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
         random.shuffle(path)
@@ -96,7 +96,7 @@ class DataLoader():
                 #add in batch
                 imgs_A.append(img_A)
                 imgs_B.append(img_B)
-                fn = fn.split('\\')[-1]
+                fn = fn.split('\\')[-1] if not use_colab else fn.split('/')[-1]
                 print(fn)
                 if fn[0] == '0' :
                     labels.append(0)
