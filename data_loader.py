@@ -42,6 +42,7 @@ class DataLoader():
             imgs_A.append(img_A)
             imgs_B.append(img_B)
             img_path = img_path.split('\\')[-1]
+            print(img_path)
             if img_path[0] == '0':
                 labels.append(0)
             elif img_path[0] == '1':
@@ -96,6 +97,7 @@ class DataLoader():
                 imgs_A.append(img_A)
                 imgs_B.append(img_B)
                 fn = fn.split('\\')[-1]
+                print(fn)
                 if fn[0] == '0' :
                     labels.append(0)
                 else:
