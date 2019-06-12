@@ -18,3 +18,5 @@ __pycache__/
 datasets\.zip
 
 t\.py
+
+*.zip

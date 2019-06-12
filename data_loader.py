@@ -76,7 +76,7 @@ class DataLoader():
                 #noise
                 if add_noise:
                     #apply noise
-                    noise_range = random.randint(1,60)
+                    noise_range = random.randint(1,30)
                     noise_np = np.random.randint(-noise_range,noise_range,(256,256,3))
                     img_A = img_A + noise_np
                     #apply noise : flip left right
