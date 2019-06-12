@@ -1,18 +1,19 @@
 import scipy
 import scipy.misc
-from PIL import Image
+from PIL import Image, ImageFilter
 from glob import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import pilutil
 import random
+import imutil
 
 class DataLoader():
     def __init__(self, dataset_name, img_res=(128, 128)):
         self.dataset_name = dataset_name
         self.img_res = img_res
 
-    def load_data(self, batch_size=1, is_testing=False, use_colab=False):
+    def load_data(self, batch_size=1, is_testing=False, use_colab=False, train_edge=False):
         data_type = "train" if not is_testing else "test"
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
 
@@ -32,6 +33,7 @@ class DataLoader():
             img_A, img_B = img[:, :_w, :], img[:, _w:, :]
 
             img_A = pilutil.imresize(img_A, self.img_res)
+            if train_edge: img_A = imutil.make_edge(img_A)
             img_B = pilutil.imresize(img_B, self.img_res)
 
             # If training => do random flip
@@ -52,7 +54,7 @@ class DataLoader():
 
         return imgs_A, imgs_B, labels
 
-    def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False, use_colab=False):
+    def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False, use_colab=False, train_edge=False):
         data_type = "train" if not is_testing else "val"
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
         random.shuffle(path)
@@ -71,6 +73,8 @@ class DataLoader():
                 img_B = img[:, half_w:, :]
 
                 img_A = pilutil.imresize(img_A, self.img_res)
+                if train_edge:
+                    img_A = imutil.make_edge(img_A)
                 img_B = pilutil.imresize(img_B, self.img_res)
 
                 #noise
@@ -83,14 +87,13 @@ class DataLoader():
                     if np.random.random() > 0.5 :
                         img_A = np.fliplr(img_A)
                         img_B = np.fliplr(img_B)
-                    if show_dataset:
-                        o = np.zeros(shape=(256, 512, 3))
-                        o[:256, :256,:] = img_A[:256,:256,:]
-                        o[:256, 256:,:] = img_B[:256,:256,:]
-                        o/=256
-                        
-                        plt.imshow(o)
-                        plt.show()
+                if show_dataset:
+                    o = np.zeros(shape=(256, 512, 3))
+                    o[:256, :256,:] = img_A[:256,:256,:]
+                    o[:256, 256:,:] = img_B[:256,:256,:]
+                    o/=256
+                    plt.imshow(o)
+                    plt.show()
 
                 #add in batch
                 imgs_A.append(img_A)

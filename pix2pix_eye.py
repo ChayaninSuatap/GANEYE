@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 import scipy
-
+import imutil
 from keras.datasets import mnist
 from keras_contrib.layers.normalization.instancenormalization import InstanceNormalization
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate
@@ -154,7 +154,7 @@ class Pix2Pix():
 
         return Model([img_A, img_B], validity)
 
-    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False, add_noise=False, colab_epoch_interval=None):
+    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False, add_noise=False, colab_epoch_interval=None, train_edge=False):
 
         start_time = datetime.datetime.now()
 
@@ -168,7 +168,7 @@ class Pix2Pix():
 
         for epoch in range(epochs):
             epoch += self.init_epoch + 1
-            for batch_i, (imgs_A, imgs_B, labels) in enumerate(self.data_loader.load_batch(batch_size, add_noise=add_noise, use_colab=train_on_colab)):
+            for batch_i, (imgs_A, imgs_B, labels) in enumerate(self.data_loader.load_batch(batch_size, add_noise=add_noise, use_colab=train_on_colab, train_edge=train_edge)):
                 #mode blue img (imgs_B)
                 imgs_B = self.make_imgb_with_label(imgs_B, labels)
                 # ---------------------
@@ -206,7 +206,7 @@ class Pix2Pix():
 
                 # If at save interval => save generated image samples
                 if (sample_interval!=None and batch_i % sample_interval == 0) or (epoch_interval!=None and epoch % epoch_interval == 0 and batch_i==0):
-                    self.sample_images(epoch, batch_i, train_on_colab)
+                    self.sample_images(epoch, batch_i, train_on_colab, train_edge=train_edge)
                     plt.savefig(self.save_path + '/loss.png')
                     #save model
                     if not train_on_colab:
@@ -223,11 +223,12 @@ class Pix2Pix():
                             self.generator.save_weights('%s/gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, )) 
                     print('\nmodel saved')
 
-    def sample_images(self, epoch, batch_i, train_on_colab=False):
+    def sample_images(self, epoch, batch_i, train_on_colab=False, train_edge=False):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 3, 3
 
-        imgs_A, imgs_B, labels = self.data_loader.load_data(batch_size=3, is_testing=True, use_colab=train_on_colab)
+        imgs_A, imgs_B, labels = self.data_loader.load_data(batch_size=3, is_testing=True, use_colab=train_on_colab, train_edge=train_edge)
+
         tobepred = self.make_imgb_with_label(imgs_B, labels)
         fake_A = self.generator.predict(tobepred)
 
@@ -265,5 +266,5 @@ class Pix2Pix():
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes', save_path='saved_model_eyes', dropout=0.2)
-    gan.train(epochs=200, batch_size=1, epoch_interval=5, train_on_colab=True, add_noise=True,
+    gan.train(epochs=200, batch_size=1, epoch_interval=2, train_on_colab=False, add_noise=True, train_edge=True,
         colab_epoch_interval=5)
