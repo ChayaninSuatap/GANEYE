@@ -7,6 +7,8 @@ def gaussian_blur(im, blur_val=3):
 
 def make_edge(im, blur_val=3):
     blured = gaussian_blur( im, blur_val)
+    blured = blured.astype('float32')
+    im = im.astype('float32')
     edge = im - blured
-    edge = edge.clip(0, 255)
+
     return edge
