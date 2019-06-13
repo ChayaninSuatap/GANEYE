@@ -17,6 +17,7 @@ import numpy as np
 import os
 from keras import backend as K
 import matplotlib.pyplot as plt
+import random
 
 class Pix2Pix():
     def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='', save_path='saved_model', dataset_name='facades', dropout=0, load_for_predict=False):
@@ -97,9 +98,9 @@ class Pix2Pix():
             """Layers used during upsampling"""
             u = UpSampling2D(size=2)(layer_input)
             u = Conv2D(filters, kernel_size=f_size, strides=1, padding='same', activation='relu')(u)
+            u = BatchNormalization(momentum=0.8)(u)
             if dropout_rate:
                 u = Dropout(dropout_rate)(u)
-            u = BatchNormalization(momentum=0.8)(u)
             u = Concatenate()([u, skip_input])
             return u
 
@@ -154,7 +155,8 @@ class Pix2Pix():
 
         return Model([img_A, img_B], validity)
 
-    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False, add_noise=False, colab_epoch_interval=None, train_edge=False, noise_value=30):
+    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False,
+        add_noise=False, colab_epoch_interval=None, train_edge=False, noise_value=30, dis_noisy_label=False):
 
         start_time = datetime.datetime.now()
 
@@ -177,9 +179,18 @@ class Pix2Pix():
                 # Condition on B and generate a translated version
                 fake_A = self.generator.predict(imgs_B)
 
-                # Train the discriminators (original images = real / generated = Fake)
-                d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], valid)
-                d_loss_fake = self.discriminator.train_on_batch([fake_A, imgs_B], fake)
+                #prepare noisy label
+                if dis_noisy_label:
+                    noisy_valid = np.full((batch_size,) + self.disc_patch, random.random() * 0.2 + 0.8)
+                    noisy_fake = np.full((batch_size,) + self.disc_patch, random.random() * 0.2)
+                    #random flip
+                    if random.random() >= 0.95: noisy_valid, noisy_fake = noisy_fake, noisy_valid
+
+                    d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], noisy_valid)
+                    d_loss_fake = self.discriminator.train_on_batch([fake_A, imgs_B], noisy_fake)
+                else:
+                    d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], valid)
+                    d_loss_fake = self.discriminator.train_on_batch([fake_A, imgs_B], fake) 
                 d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
                 # -----------------
@@ -266,5 +277,5 @@ class Pix2Pix():
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes', save_path='saved_model_eyes', dropout=0.2)
-    gan.train(epochs=200, batch_size=1, epoch_interval=2, train_on_colab=False, add_noise=True, train_edge=True,
-        noise_value=2, colab_epoch_interval=5)
+    gan.train(epochs=999, batch_size=1, epoch_interval=10, train_on_colab=False, add_noise=True, train_edge=False,
+        noise_value=30, dis_noisy_label=True)
