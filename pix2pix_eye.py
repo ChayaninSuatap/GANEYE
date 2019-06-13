@@ -181,8 +181,8 @@ class Pix2Pix():
 
                 #prepare noisy label
                 if dis_noisy_label:
-                    noisy_valid = np.full((batch_size,) + self.disc_patch, random.random() * 0.2 + 0.8)
-                    noisy_fake = np.full((batch_size,) + self.disc_patch, random.random() * 0.2)
+                    noisy_valid = np.full((batch_size,) + self.disc_patch, random.random() * 0.3 + 0.7)
+                    noisy_fake = np.full((batch_size,) + self.disc_patch, random.random() * 0.3)
                     #random flip
                     if random.random() >= 0.95: noisy_valid, noisy_fake = noisy_fake, noisy_valid
 
