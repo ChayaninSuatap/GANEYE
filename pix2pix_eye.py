@@ -270,6 +270,10 @@ class Pix2Pix():
             t = np.zeros(shape=self.img_shape_blue, dtype=np.float)
             # print(t.shape, imgb.shape)
             t[:self.img_rows, :self.img_cols, 0:2] = imgb[:self.img_rows, :self.img_cols, 0:2]
+            if label == 0:
+                label = random.random() * 0.3
+            else:
+                label = random.random() * 0.3 + 0.7
             t[:self.img_rows, :self.img_cols, 3] = label
             ts.append(t)
         return np.array(ts)
