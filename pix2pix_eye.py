@@ -154,7 +154,7 @@ class Pix2Pix():
 
         return Model([img_A, img_B], validity)
 
-    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False, add_noise=False, colab_epoch_interval=None, train_edge=False):
+    def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False, add_noise=False, colab_epoch_interval=None, train_edge=False, noise_value=30):
 
         start_time = datetime.datetime.now()
 
@@ -168,7 +168,7 @@ class Pix2Pix():
 
         for epoch in range(epochs):
             epoch += self.init_epoch + 1
-            for batch_i, (imgs_A, imgs_B, labels) in enumerate(self.data_loader.load_batch(batch_size, add_noise=add_noise, use_colab=train_on_colab, train_edge=train_edge)):
+            for batch_i, (imgs_A, imgs_B, labels) in enumerate(self.data_loader.load_batch(batch_size, add_noise=add_noise, use_colab=train_on_colab, train_edge=train_edge, noise_value=noise_value)):
                 #mode blue img (imgs_B)
                 imgs_B = self.make_imgb_with_label(imgs_B, labels)
                 # ---------------------
@@ -267,4 +267,4 @@ if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes', save_path='saved_model_eyes', dropout=0.2)
     gan.train(epochs=200, batch_size=1, epoch_interval=2, train_on_colab=False, add_noise=True, train_edge=True,
-        colab_epoch_interval=5)
+        noise_value=2, colab_epoch_interval=5)

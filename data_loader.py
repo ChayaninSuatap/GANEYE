@@ -54,7 +54,7 @@ class DataLoader():
 
         return imgs_A, imgs_B, labels
 
-    def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False, use_colab=False, train_edge=False):
+    def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False, use_colab=False, train_edge=False, noise_value=30):
         data_type = "train" if not is_testing else "val"
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
         random.shuffle(path)
@@ -80,7 +80,7 @@ class DataLoader():
                 #noise
                 if add_noise:
                     #apply noise
-                    noise_range = random.randint(1,30)
+                    noise_range = random.randint(1,noise_value)
                     noise_np = np.random.randint(-noise_range,noise_range,(256,256,3))
                     img_A = img_A + noise_np
                     #apply noise : flip left right
