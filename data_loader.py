@@ -49,7 +49,8 @@ class DataLoader():
             elif img_path[0] == '1':
                 labels.append(1)
 
-        imgs_A = np.array(imgs_A)/127.5 - 1.
+        if train_edge:  imgs_A = np.array(imgs_A)/255.
+        else: imgs_A = np.array(imgs_A)/127.5 - 1.
         imgs_B = np.array(imgs_B)/127.5 - 1.
 
         return imgs_A, imgs_B, labels
@@ -104,9 +105,10 @@ class DataLoader():
                 else:
                     labels.append(1)
 
-            imgs_A = np.array(imgs_A)/127.5 - 1.
+            if train_edge:  imgs_A = np.array(imgs_A)/255.
+            else: imgs_A = np.array(imgs_A)/127.5 - 1.
             imgs_B = np.array(imgs_B)/127.5 - 1.
-
+            
             yield imgs_A, imgs_B, labels
 
 

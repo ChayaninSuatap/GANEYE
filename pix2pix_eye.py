@@ -277,5 +277,5 @@ class Pix2Pix():
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes', save_path='saved_model_eyes', dropout=0.2)
-    gan.train(epochs=999, batch_size=1, epoch_interval=10, train_on_colab=False, add_noise=True, train_edge=False,
-        noise_value=30, dis_noisy_label=True)
+    gan.train(epochs=999, batch_size=1, epoch_interval=10, train_on_colab=False, add_noise=True, train_edge=True,
+        noise_value=2, dis_noisy_label=True)
