@@ -33,7 +33,7 @@ class DataLoader():
             img_A, img_B = img[:, :_w, :], img[:, _w:, :]
 
             img_A = pilutil.imresize(img_A, self.img_res)
-            if train_edge: img_A = imutil.make_edge(img_A)
+            if train_edge: img_A = imutil.make_edge(img_A,10)
             img_B = pilutil.imresize(img_B, self.img_res)
 
             # If training => do random flip
