@@ -20,13 +20,15 @@ import matplotlib.pyplot as plt
 import random
 
 class Pix2Pix():
-    def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='', save_path='saved_model', dataset_name='facades', dropout=0, load_for_predict=False):
+    def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='',
+    save_path='saved_model', dataset_name='facades', dropout=0,
+    load_for_predict=False, img_size=(256,256)):
         #pre setting
         self.init_epoch = init_epoch
         self.save_path = save_path
         # Input shape
-        self.img_rows = 256
-        self.img_cols = 256
+        self.img_rows = img_size[1]
+        self.img_cols = img_size[0]
         self.channels = 3
         self.channels_blue = 4
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
@@ -276,6 +278,6 @@ class Pix2Pix():
 
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
-        dataset_name='eyes', save_path='saved_model_eyes', dropout=0.2)
-    gan.train(epochs=999, batch_size=1, epoch_interval=10, train_on_colab=False, add_noise=True, train_edge=True,
-        noise_value=2, dis_noisy_label=True)
+        dataset_name='eyes512', save_path='saved_model_eyes', dropout=0.2, img_size=(512, 512))
+    gan.train(epochs=999, batch_size=1, epoch_interval=5, train_on_colab=False, add_noise=True, train_edge=False,
+        noise_value=30, dis_noisy_label=True)

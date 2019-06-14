@@ -82,16 +82,16 @@ class DataLoader():
                 if add_noise:
                     #apply noise
                     noise_range = random.randint(1,noise_value)
-                    noise_np = np.random.randint(-noise_range,noise_range,(256,256,3))
+                    noise_np = np.random.randint(-noise_range,noise_range,(self.img_res[0], self.img_res[1],3))
                     img_A = img_A + noise_np
                     #apply noise : flip left right
                     if np.random.random() > 0.5 :
                         img_A = np.fliplr(img_A)
                         img_B = np.fliplr(img_B)
                 if show_dataset:
-                    o = np.zeros(shape=(256, 512, 3))
-                    o[:256, :256,:] = img_A[:256,:256,:]
-                    o[:256, 256:,:] = img_B[:256,:256,:]
+                    o = np.zeros(shape=(self.img_res[0], self.img_res[1] * 2, 3))
+                    o[:self.img_res[0], :self.img_res[1],:] = img_A[:self.img_res[0],:self.img_res[1],:]
+                    o[:self.img_res[0], self.img_res[1]:,:] = img_B[:self.img_res[0],:self.img_res[1],:]
                     o/=256
                     plt.imshow(o)
                     plt.show()
