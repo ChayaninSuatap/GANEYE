@@ -18,13 +18,13 @@ import os
 from keras import backend as K
 import matplotlib.pyplot as plt
 import random
-from matplotlib.pyplot import rcParams
-rcParams['figure.figsize'] = 14, 8
 
 class Pix2Pix():
     def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='',
     save_path='saved_model', dataset_name='facades', dropout=0,
     load_for_predict=False, img_size=(256,256)):
+        from matplotlib.pyplot import rcParams
+        rcParams['figure.figsize'] = 14, 8
         #pre setting
         self.init_epoch = init_epoch
         self.save_path = save_path
