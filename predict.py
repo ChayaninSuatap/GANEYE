@@ -27,7 +27,7 @@ for fn in os.listdir('my_blues'):
     pred = model.predict( xs)
     pred_edge = model_edge.predict( xs)
     im = ((pred[1][0] * 0.5 + 0.5)).astype('float32')
-    im_edge = ((pred_edge[1][0] * 0.5 + 0.5)).astype('float32')
+    im_edge = ((pred_edge[1][0] / 255)).astype('float32')
     im_final = im_edge + im
     
     print(im_edge)
