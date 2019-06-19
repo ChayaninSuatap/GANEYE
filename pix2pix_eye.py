@@ -22,12 +22,13 @@ import random
 class Pix2Pix():
     def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='',
     save_path='saved_model', dataset_name='facades', dropout=0,
-    load_for_predict=False, img_size=(256,256)):
+    load_for_predict=False, img_size=(256,256), validate_num=3):
         from matplotlib.pyplot import rcParams
         rcParams['figure.figsize'] = 14, 8
         #pre setting
         self.init_epoch = init_epoch
         self.save_path = save_path
+        self.validate_num = validate_num
         # Input shape
         self.img_rows = img_size[1]
         self.img_cols = img_size[0]
@@ -240,9 +241,10 @@ class Pix2Pix():
 
     def sample_images(self, epoch, batch_i, train_on_colab=False, train_edge=False):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
-        r, c = 3, 3
+        r, c = 3, self.validate_num
 
-        imgs_A, imgs_B, labels = self.data_loader.load_data(batch_size=3, is_testing=True, use_colab=train_on_colab, train_edge=train_edge)
+        imgs_A, imgs_B, labels = self.data_loader.load_data(batch_size=self.validate_num,
+            is_testing=True, use_colab=train_on_colab, train_edge=train_edge)
 
         tobepred = self.make_imgb_with_label(imgs_B, labels)
         fake_A = self.generator.predict(tobepred)
@@ -281,5 +283,5 @@ class Pix2Pix():
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes512', save_path='saved_model_eyes', dropout=0.2, img_size=(256, 256))
-    gan.train(epochs=999, batch_size=1, epoch_interval=5, train_on_colab=False, add_noise=True, train_edge=True,
+    gan.train(epochs=999, batch_size=1, epoch_interval=1, train_on_colab=False, add_noise=True, train_edge=False,
         noise_value=2, dis_noisy_label=True)
