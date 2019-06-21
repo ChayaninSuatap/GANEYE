@@ -13,50 +13,18 @@ class DataLoader():
         self.dataset_name = dataset_name
         self.img_res = img_res
 
-    def load_data(self, batch_size, use_colab, train_edge, train_edge_blur_fn, train_edge_blur_val):
-        path = glob('./datasets/%s/%s/*' % (self.dataset_name, 'train'))
-        batch_images = path[:batch_size]
-
-        imgs_A = []
-        imgs_B = []
-        labels = []
-        for img_path in batch_images:
-            img = self.imread(img_path)
-
-            h, w, _ = img.shape
-            _w = int(w/2)
-            img_A, img_B = img[:, :_w, :], img[:, _w:, :]
-
-            img_A = pilutil.imresize(img_A, self.img_res)
-            if train_edge: img_A = imutil.make_edge(img_A, blur_val=train_edge_blur_val, blur_fn=train_edge_blur_fn)
-            img_B = pilutil.imresize(img_B, self.img_res)
-
-            imgs_A.append(img_A)
-            imgs_B.append(img_B)
-            img_path = img_path.split('\\')[-1] if not use_colab else img_path.split('/')[-1]
-            if img_path[0] == '0':
-                labels.append(0)
-            elif img_path[0] == '1':
-                labels.append(1)
-
-        if train_edge:  imgs_A = np.array(imgs_A)/255.
-        else: imgs_A = np.array(imgs_A)/127.5 - 1.
-        imgs_B = np.array(imgs_B)/127.5 - 1.
-
-        return imgs_A, imgs_B, labels
-
-    def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False, use_colab=False, train_edge=False, noise_value=30,
-        train_edge_blur_fn=imutil.gaussian_blur, train_edge_blur_val=3):
-        data_type = "train" if not is_testing else "val"
+    def make_dataset_cache(self, is_testing, use_colab, train_edge,
+        train_edge_blur_fn, train_edge_blur_val):
+        data_type = 'train' if not is_testing else 'test'
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
         random.shuffle(path)
-
-        self.n_batches = int(len(path) / batch_size)
 
         img_A_cache = []
         img_B_cache = []
         label_cache = []
-        for fn in path:
+
+        for i,fn in enumerate(path):
+            print('caching',i)
             #read im and split real and blue
             img = pilutil.imread(fn)
             h, w, _ = img.shape
@@ -70,15 +38,26 @@ class DataLoader():
             img_B = pilutil.imresize(img_B, self.img_res)
             #compute label
             fn = fn.split('\\')[-1] if not use_colab else fn.split('/')[-1]
-                if fn[0] == '0' :
-                    labels.append(0)
-                else:
-                    labels.append(1)
+            if fn[0] == '0' :
+                label_cache.append(0)
+            else:
+                label_cache.append(1)
             #append
             img_A_cache.append(img_A)
             img_B_cache.append(img_B)
+        #normalize
+        if train_edge:  img_A_cache = np.array(img_A_cache)/255.
+        else: img_A_cache = np.array(img_A_cache)/127.5 - 1.
+        img_B_cache = np.array(img_B_cache)/127.5 - 1.
+        return img_A_cache, img_B_cache, label_cache
 
-        for i in range(self.n_batches):
+    def load_batch(self, batch_size, is_testing, add_noise, show_dataset, train_edge, cache, noise_value):
+        data_type = "train" if not is_testing else "val"
+        path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
+        self.n_batches = int(len(path) / batch_size)
+        #get cache
+        img_A_cache, img_B_cache, label_cache = cache
+        for i in range(self.n_batches):#TODO test load best
             img_A_batch = img_A_cache[i*batch_size:(i+1)*batch_size]
             img_B_batch = img_B_cache[i*batch_size:(i+1)*batch_size]
             label_batch = label_cache[i*batch_size:(i+1)*batch_size]
@@ -107,12 +86,8 @@ class DataLoader():
                 imgs_A.append(img_A)
                 imgs_B.append(img_B)
                 labels.append(label)
-            #normalize
-            if train_edge:  imgs_A = np.array(imgs_A)/255.
-            else: imgs_A = np.array(imgs_A)/127.5 - 1.
-            imgs_B = np.array(imgs_B)/127.5 - 1.
             #yield batch
-            yield imgs_A, imgs_B, labels
+            yield np.array(imgs_A), np.array(imgs_B), np.array(labels)
 
     def imread(self, path):
         return pilutil.imread(path, mode='RGB').astype(np.float)

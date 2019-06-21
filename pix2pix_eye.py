@@ -174,14 +174,19 @@ class Pix2Pix():
         # loss array
         d_losses = []
         g_losses = []
-
+        #cache
+        print('caching')
+        cache = self.data_loader.make_dataset_cache(is_testing=False, use_colab=True, train_edge=True,
+            train_edge_blur_fn=imutil.MEDIAN, train_edge_blur_val=31)
+        self.validate_cache = self.data_loader.make_dataset_cache(is_testing=True, use_colab=True, train_edge=True,
+            train_edge_blur_fn=imutil.MEDIAN, train_edge_blur_val=31)
+        print('caching done')
+        #start training
         for epoch in range(epochs):
             epoch += self.init_epoch + 1
             for batch_i, (imgs_A, imgs_B, labels) in enumerate(
-                self.data_loader.load_batch(
-                    batch_size, add_noise=add_noise, use_colab=train_on_colab, train_edge=train_edge,
-                    noise_value=noise_value,train_edge_blur_fn=train_edge_blur_fn, train_edge_blur_val=train_edge_blur_val 
-                    )
+                self.data_loader.load_batch(batch_size, False, add_noise, show_dataset=False, train_edge=train_edge,
+                    cache=cache, noise_value=30)
                 ):
                 #mode blue img (imgs_B)
                 imgs_B = self.make_imgb_with_label(imgs_B, labels)
@@ -220,8 +225,7 @@ class Pix2Pix():
 
                 # If at save interval => save generated image samples
                 if (sample_interval!=None and batch_i % sample_interval == 0) or (epoch_interval!=None and epoch % epoch_interval == 0 and batch_i==0):
-                    self.sample_images(epoch, batch_i, train_on_colab=train_on_colab, train_edge=train_edge, train_edge_blur_fn=train_edge_blur_fn,
-                        train_edge_blur_val=train_edge_blur_val)
+                    self.sample_images(epoch, batch_i, train_on_colab)
                     plt.savefig(self.save_path + '/loss.png')
                     #save model
                     if not train_on_colab:
@@ -238,13 +242,11 @@ class Pix2Pix():
                             self.generator.save_weights('%s/gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, )) 
                     print('\nmodel saved')
 
-    def sample_images(self, epoch, batch_i, train_on_colab, train_edge, train_edge_blur_fn, train_edge_blur_val):
+    def sample_images(self, epoch, batch_i, train_on_colab):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 3, self.validate_num
 
-        imgs_A, imgs_B, labels = self.data_loader.load_data(batch_size=self.validate_num,
-            use_colab=train_on_colab, train_edge=train_edge, train_edge_blur_fn=train_edge_blur_fn,
-            train_edge_blur_val=train_edge_blur_val)
+        imgs_A, imgs_B, labels = self.validate_cache
 
         tobepred = self.make_imgb_with_label(imgs_B, labels)
         fake_A = self.generator.predict(tobepred)
@@ -282,6 +284,6 @@ class Pix2Pix():
 
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
-        dataset_name='eyes512', save_path='saved_model_eyes', dropout=0.2, img_size=(512, 512))
+        dataset_name='eyes512', save_path='saved_model_eyes', dropout=0.2, img_size=(256, 256))
     gan.train(epochs=999, batch_size=1, epoch_interval=1, train_on_colab=False, add_noise=True, train_edge=True,
         noise_value=2, dis_noisy_label=True, train_edge_blur_fn=imutil.MEDIAN, train_edge_blur_val=31)
