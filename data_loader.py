@@ -53,23 +53,38 @@ class DataLoader():
 
         self.n_batches = int(len(path) / batch_size)
 
+        img_A_cache = []
+        img_B_cache = []
+        label_cache = []
+        for fn in path:
+            #read im and split real and blue
+            img = pilutil.imread(fn)
+            h, w, _ = img.shape
+            half_w = int(w/2)
+            img_A = img[:, :half_w, :]
+            img_B = img[:, half_w:, :]
+            #filter edge
+            if train_edge:
+                img_A = imutil.make_edge(img_A, blur_val=train_edge_blur_val , blur_fn=train_edge_blur_fn)
+            img_A = pilutil.imresize(img_A, self.img_res)
+            img_B = pilutil.imresize(img_B, self.img_res)
+            #compute label
+            fn = fn.split('\\')[-1] if not use_colab else fn.split('/')[-1]
+                if fn[0] == '0' :
+                    labels.append(0)
+                else:
+                    labels.append(1)
+            #append
+            img_A_cache.append(img_A)
+            img_B_cache.append(img_B)
+
         for i in range(self.n_batches):
-            batch = path[i*batch_size:(i+1)*batch_size]
+            img_A_batch = img_A_cache[i*batch_size:(i+1)*batch_size]
+            img_B_batch = img_B_cache[i*batch_size:(i+1)*batch_size]
+            label_batch = label_cache[i*batch_size:(i+1)*batch_size]
 
             imgs_A, imgs_B, labels = [], [], []
-            for fn in batch:
-                #read im and split real and blue
-                img = pilutil.imread(fn)
-                h, w, _ = img.shape
-                half_w = int(w/2)
-                img_A = img[:, :half_w, :]
-                img_B = img[:, half_w:, :]
-                #filter edge
-                if train_edge:
-                    img_A = imutil.make_edge(img_A, blur_val=train_edge_blur_val , blur_fn=train_edge_blur_fn)
-                img_A = pilutil.imresize(img_A, self.img_res)
-                img_B = pilutil.imresize(img_B, self.img_res)
-
+            for img_A, img_B, label in zip( img_A_batch, img_B_batch, label_batch):
                 #noise
                 if add_noise:
                     #apply noise
@@ -80,6 +95,7 @@ class DataLoader():
                     if np.random.random() > 0.5 :
                         img_A = np.fliplr(img_A)
                         img_B = np.fliplr(img_B)
+                #show dataset option
                 if show_dataset:
                     o = np.zeros(shape=(self.img_res[0], self.img_res[1] * 2, 3))
                     o[:self.img_res[0], :self.img_res[1],:] = img_A[:self.img_res[0],:self.img_res[1],:]
@@ -87,22 +103,16 @@ class DataLoader():
                     o/=256
                     plt.imshow(o)
                     plt.show()
-
                 #add in batch
                 imgs_A.append(img_A)
                 imgs_B.append(img_B)
-                fn = fn.split('\\')[-1] if not use_colab else fn.split('/')[-1]
-                if fn[0] == '0' :
-                    labels.append(0)
-                else:
-                    labels.append(1)
-
+                labels.append(label)
+            #normalize
             if train_edge:  imgs_A = np.array(imgs_A)/255.
             else: imgs_A = np.array(imgs_A)/127.5 - 1.
             imgs_B = np.array(imgs_B)/127.5 - 1.
-            
+            #yield batch
             yield imgs_A, imgs_B, labels
-
 
     def imread(self, path):
         return pilutil.imread(path, mode='RGB').astype(np.float)
