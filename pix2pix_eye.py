@@ -18,6 +18,7 @@ import os
 from keras import backend as K
 import matplotlib.pyplot as plt
 import random
+import imutil
 
 class Pix2Pix():
     def __init__(self, init_epoch=0, gen_weights_fn='', dis_weights_fn='',
@@ -161,7 +162,8 @@ class Pix2Pix():
         return Model([img_A, img_B], validity)
 
     def train(self, epochs, batch_size=1, sample_interval=None, epoch_interval=None, train_on_colab=False,
-        add_noise=False, colab_epoch_interval=None, train_edge=False, noise_value=30, dis_noisy_label=False):
+        add_noise=False, colab_epoch_interval=None, train_edge=False, noise_value=30, dis_noisy_label=False,
+        train_edge_blur_fn=imutil.gaussian_blur, train_edge_blur_val=3):
 
         start_time = datetime.datetime.now()
 
@@ -175,15 +177,16 @@ class Pix2Pix():
 
         for epoch in range(epochs):
             epoch += self.init_epoch + 1
-            for batch_i, (imgs_A, imgs_B, labels) in enumerate(self.data_loader.load_batch(batch_size, add_noise=add_noise, use_colab=train_on_colab, train_edge=train_edge, noise_value=noise_value)):
+            for batch_i, (imgs_A, imgs_B, labels) in enumerate(
+                self.data_loader.load_batch(
+                    batch_size, add_noise=add_noise, use_colab=train_on_colab, train_edge=train_edge,
+                    noise_value=noise_value,train_edge_blur_fn=train_edge_blur_fn, train_edge_blur_val=train_edge_blur_val 
+                    )
+                ):
                 #mode blue img (imgs_B)
                 imgs_B = self.make_imgb_with_label(imgs_B, labels)
-                # ---------------------
                 #  Train Discriminator
-                # ---------------------
-                # Condition on B and generate a translated version
                 fake_A = self.generator.predict(imgs_B)
-
                 #prepare noisy label
                 if dis_noisy_label:
                     noisy_valid = np.full((batch_size,) + self.disc_patch, random.random() * 0.2 + 0.8)
@@ -197,12 +200,8 @@ class Pix2Pix():
                     d_loss_real = self.discriminator.train_on_batch([imgs_A, imgs_B], valid)
                     d_loss_fake = self.discriminator.train_on_batch([fake_A, imgs_B], fake) 
                 d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
-
-                # -----------------
                 #  Train Generator
-                # -----------------
                 g_loss = self.combined.train_on_batch(imgs_B, [valid, imgs_A])
-
                 elapsed_time = datetime.datetime.now() - start_time
                 # Plot the progress
                 print('',end='\r')
@@ -211,7 +210,6 @@ class Pix2Pix():
                                                                         d_loss[0], 100*d_loss[1],
                                                                         g_loss[0],
                                                                         elapsed_time), end='')
-                
                 #add loss array
                 d_losses.append(d_loss[0])
                 g_losses.append(g_loss[0])
@@ -222,7 +220,8 @@ class Pix2Pix():
 
                 # If at save interval => save generated image samples
                 if (sample_interval!=None and batch_i % sample_interval == 0) or (epoch_interval!=None and epoch % epoch_interval == 0 and batch_i==0):
-                    self.sample_images(epoch, batch_i, train_on_colab, train_edge=train_edge)
+                    self.sample_images(epoch, batch_i, train_on_colab=train_on_colab, train_edge=train_edge, train_edge_blur_fn=train_edge_blur_fn,
+                        train_edge_blur_val=train_edge_blur_val)
                     plt.savefig(self.save_path + '/loss.png')
                     #save model
                     if not train_on_colab:
@@ -239,12 +238,13 @@ class Pix2Pix():
                             self.generator.save_weights('%s/gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, )) 
                     print('\nmodel saved')
 
-    def sample_images(self, epoch, batch_i, train_on_colab=False, train_edge=False):
+    def sample_images(self, epoch, batch_i, train_on_colab, train_edge, train_edge_blur_fn, train_edge_blur_val):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 3, self.validate_num
 
         imgs_A, imgs_B, labels = self.data_loader.load_data(batch_size=self.validate_num,
-            is_testing=True, use_colab=train_on_colab, train_edge=train_edge)
+            use_colab=train_on_colab, train_edge=train_edge, train_edge_blur_fn=train_edge_blur_fn,
+            train_edge_blur_val=train_edge_blur_val)
 
         tobepred = self.make_imgb_with_label(imgs_B, labels)
         fake_A = self.generator.predict(tobepred)
@@ -282,6 +282,6 @@ class Pix2Pix():
 
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
-        dataset_name='eyes512', save_path='saved_model_eyes', dropout=0.2, img_size=(256, 256))
-    gan.train(epochs=999, batch_size=1, epoch_interval=1, train_on_colab=False, add_noise=True, train_edge=False,
-        noise_value=2, dis_noisy_label=True)
+        dataset_name='eyes512', save_path='saved_model_eyes', dropout=0.2, img_size=(512, 512))
+    gan.train(epochs=999, batch_size=1, epoch_interval=1, train_on_colab=False, add_noise=True, train_edge=True,
+        noise_value=2, dis_noisy_label=True, train_edge_blur_fn=imutil.median_filter, train_edge_blur_val=31)

@@ -13,14 +13,9 @@ class DataLoader():
         self.dataset_name = dataset_name
         self.img_res = img_res
 
-    def load_data(self, batch_size=1, is_testing=False, use_colab=False, train_edge=False):
-        data_type = "train" if not is_testing else "test"
-        path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
-
-        if not is_testing:
-            batch_images = np.random.choice(path, size=batch_size)
-        else:
-            batch_images = path[:batch_size]
+    def load_data(self, batch_size, use_colab, train_edge, train_edge_blur_fn, train_edge_blur_val):
+        path = glob('./datasets/%s/%s/*' % (self.dataset_name, 'train'))
+        batch_images = path[:batch_size]
 
         imgs_A = []
         imgs_B = []
@@ -33,13 +28,8 @@ class DataLoader():
             img_A, img_B = img[:, :_w, :], img[:, _w:, :]
 
             img_A = pilutil.imresize(img_A, self.img_res)
-            if train_edge: img_A = imutil.make_edge(img_A,10)
+            if train_edge: img_A = imutil.make_edge(img_A, blur_val=train_edge_blur_val, blur_fn=train_edge_blur_fn)
             img_B = pilutil.imresize(img_B, self.img_res)
-
-            # If training => do random flip
-            if not is_testing and np.random.random() < 0.5:
-                img_A = np.fliplr(img_A)
-                img_B = np.fliplr(img_B)
 
             imgs_A.append(img_A)
             imgs_B.append(img_B)
@@ -55,7 +45,8 @@ class DataLoader():
 
         return imgs_A, imgs_B, labels
 
-    def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False, use_colab=False, train_edge=False, noise_value=30):
+    def load_batch(self, batch_size=1, is_testing=False, add_noise=False, show_dataset=False, use_colab=False, train_edge=False, noise_value=30,
+        train_edge_blur_fn=imutil.gaussian_blur, train_edge_blur_val=3):
         data_type = "train" if not is_testing else "val"
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
         random.shuffle(path)
@@ -67,15 +58,16 @@ class DataLoader():
 
             imgs_A, imgs_B, labels = [], [], []
             for fn in batch:
+                #read im and split real and blue
                 img = pilutil.imread(fn)
                 h, w, _ = img.shape
                 half_w = int(w/2)
                 img_A = img[:, :half_w, :]
                 img_B = img[:, half_w:, :]
-
-                img_A = pilutil.imresize(img_A, self.img_res)
+                #filter edge
                 if train_edge:
-                    img_A = imutil.make_edge(img_A,10)
+                    img_A = imutil.make_edge(img_A, blur_val=train_edge_blur_val , blur_fn=train_edge_blur_fn)
+                img_A = pilutil.imresize(img_A, self.img_res)
                 img_B = pilutil.imresize(img_B, self.img_res)
 
                 #noise
