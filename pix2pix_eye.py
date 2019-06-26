@@ -269,6 +269,7 @@ class Pix2Pix():
                 axs[i, j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
+        #save plot
         if train_on_colab:
             if save_fn_with_number:
                 fn = '%s/validate_%d.png' % (self.save_path, epoch)

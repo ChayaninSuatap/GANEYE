@@ -88,7 +88,7 @@ class DataLoader():
                 imgs_B.append(img_B)
                 labels.append(label)
             #normalize
-            if train_edge: imgs_A = np.array(img_A)/255.
+            if train_edge: imgs_A = np.array(imgs_A)/255.
             else: imgs_A = np.array(imgs_A)/127.5 - 1.
             imgs_B = np.array(imgs_B)/127.5 - 1.
             #yield batch
