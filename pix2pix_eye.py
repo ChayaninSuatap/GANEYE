@@ -226,6 +226,7 @@ class Pix2Pix():
 
                 # If at save interval => save generated image samples
                 if (sample_interval!=None and batch_i % sample_interval == 0) or (epoch_interval!=None and epoch % epoch_interval == 0 and batch_i==0):
+                    #save plot 
                     self.sample_images(epoch, batch_i, train_on_colab)
                     plt.savefig(self.save_path + '/loss.png')
                     #save model
@@ -241,9 +242,11 @@ class Pix2Pix():
                         if colab_epoch_interval != None and epoch % colab_epoch_interval == 0:
                             self.discriminator.save_weights('%s/dis_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, ))
                             self.generator.save_weights('%s/gen_ep-%d-sample-%d.hdf5' % (self.save_path, epoch, batch_i, )) 
+                            #save plot with number
+                            self.sample_images(epoch, batch_i, train_on_colab, save_fn_with_number=True)
                     print('\nmodel saved')
 
-    def sample_images(self, epoch, batch_i, train_on_colab):
+    def sample_images(self, epoch, batch_i, train_on_colab, save_fn_with_number=False):
         os.makedirs('images/%s' % self.dataset_name, exist_ok=True)
         r, c = 3, self.validate_num
 
@@ -267,7 +270,10 @@ class Pix2Pix():
                 axs[i,j].axis('off')
                 cnt += 1
         if train_on_colab:
-            fn = '%s/validate.png' % (self.save_path,)
+            if save_fn_with_number:
+                fn = '%s/validate_%d.png' % (self.save_path, epoch)
+            else:
+                fn = '%s/validate.png' % (self.save_path,)
         else:
             fn = "images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i)
         fig.savefig(fn)
