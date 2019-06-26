@@ -14,7 +14,7 @@ class DataLoader():
         self.img_res = img_res
 
     def make_dataset_cache(self, is_testing, use_colab, train_edge,
-        train_edge_blur_fn, train_edge_blur_val):
+        train_edge_blur_fn, train_edge_blur_val, normalize=False):
         data_type = 'train' if not is_testing else 'test'
         path = glob('./datasets/%s/%s/*' % (self.dataset_name, data_type))
         random.shuffle(path)
@@ -46,9 +46,10 @@ class DataLoader():
             img_A_cache.append(img_A)
             img_B_cache.append(img_B)
         #normalize
-        if train_edge:  img_A_cache = np.array(img_A_cache)/255.
-        else: img_A_cache = np.array(img_A_cache)/127.5 - 1.
-        img_B_cache = np.array(img_B_cache)/127.5 - 1.
+        if normalize:
+            if train_edge: img_A_cache = np.array(img_A_cache)/255.
+            else: img_A_cache = np.array(img_A_cache)/127.5 - 1.
+            img_B_cache = np.array(img_B_cache)/127.5 - 1.
         return img_A_cache, img_B_cache, label_cache
 
     def load_batch(self, batch_size, is_testing, add_noise, show_dataset, train_edge, cache, noise_value):
@@ -86,8 +87,12 @@ class DataLoader():
                 imgs_A.append(img_A)
                 imgs_B.append(img_B)
                 labels.append(label)
+            #normalize
+            if train_edge: imgs_A = np.array(img_A)/255.
+            else: imgs_A = np.array(imgs_A)/127.5 - 1.
+            imgs_B = np.array(imgs_B)/127.5 - 1.
             #yield batch
-            yield np.array(imgs_A), np.array(imgs_B), np.array(labels)
+            yield imgs_A, imgs_B, np.array(labels)
 
     def imread(self, path):
         return pilutil.imread(path, mode='RGB').astype(np.float)

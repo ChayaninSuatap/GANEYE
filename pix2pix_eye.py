@@ -176,10 +176,11 @@ class Pix2Pix():
         g_losses = []
         #cache
         print('caching')
-        cache = self.data_loader.make_dataset_cache(is_testing=False, use_colab=True, train_edge=True,
-            train_edge_blur_fn=imutil.MEDIAN, train_edge_blur_val=31)
-        self.validate_cache = self.data_loader.make_dataset_cache(is_testing=True, use_colab=True, train_edge=True,
-            train_edge_blur_fn=imutil.MEDIAN, train_edge_blur_val=31)
+        cache = self.data_loader.make_dataset_cache(is_testing=False, use_colab=train_on_colab, train_edge=train_edge,
+            train_edge_blur_fn=train_edge_blur_fn, train_edge_blur_val=train_edge_blur_val)
+        #also cache for validation
+        self.validate_cache = self.data_loader.make_dataset_cache(is_testing=True, use_colab=train_on_colab, train_edge=train_edge,
+            train_edge_blur_fn=train_edge_blur_fn, train_edge_blur_val=train_edge_blur_val, normalize=True)
         print('caching done')
         #start training
         for epoch in range(epochs):
@@ -285,5 +286,5 @@ class Pix2Pix():
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes512', save_path='saved_model_eyes', dropout=0.2, img_size=(256, 256))
-    gan.train(epochs=999, batch_size=1, epoch_interval=1, train_on_colab=False, add_noise=True, train_edge=True,
-        noise_value=2, dis_noisy_label=True, train_edge_blur_fn=imutil.MEDIAN, train_edge_blur_val=31)
+    gan.train(epochs=999, batch_size=1, epoch_interval=10, train_on_colab=False, add_noise=True, train_edge=False,
+        noise_value=2, dis_noisy_label=True, train_edge_blur_fn=imutil.GAUSSIAN, train_edge_blur_val=10)

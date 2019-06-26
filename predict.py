@@ -7,9 +7,12 @@ import os
 import PIL
 import imutil
 
+img_w = 512
+img_h = 512
+
 print('loading model')
-o = Pix2Pix(gen_weights_fn='gen_ep-8000-sample-0.hdf5', dis_weights_fn='dis_ep-8000-sample-0.hdf5', load_for_predict=True, save_path='saved_model_eyes')
-o_edge = Pix2Pix(gen_weights_fn='gen.hdf5', dis_weights_fn='dis.hdf5', load_for_predict=True, save_path='saved_model_eyes')
+o = Pix2Pix(gen_weights_fn='gen_ep-3400.hdf5', dis_weights_fn='dis_ep-3400.hdf5', load_for_predict=True, save_path='saved_model_eyes', img_size=(img_w,img_h))
+o_edge = Pix2Pix(gen_weights_fn='gen_ep-1000-edge.hdf5', dis_weights_fn='dis_ep-1000-edge.hdf5', load_for_predict=True, save_path='saved_model_eyes', img_size=(img_w, img_h))
 model = o.combined
 model_edge = o_edge.combined
 print('loaded')
@@ -19,7 +22,8 @@ folder_path = 'my_blues'
 for fn in os.listdir('my_blues'):
     path = 'my_blues/' + fn 
     img = scipy.misc.imread(path, mode='RGB').astype(np.float)
-    img = scipy.misc.imresize(img, (256,256))
+    img = scipy.misc.imresize(img, (img_w, img_h))
+
     xs = np.array([img])/127.5 - 1.
     xs = o.make_imgb_with_label(xs, [0 if fn[0]=='0' else 1])
 
@@ -29,7 +33,7 @@ for fn in os.listdir('my_blues'):
     im = ((pred[1][0] * 0.5 + 0.5)).astype('float32')
     im_edge = (pred_edge[1][0]).astype('float32')
     im_final = im_edge + im
-    
+
     print(np.amin(im_edge), np.amax(im_edge))
     grid = plt.GridSpec(2,2)
     plt_im = plt.subplot(grid[0,0])
