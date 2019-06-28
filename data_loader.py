@@ -31,11 +31,12 @@ class DataLoader():
             half_w = int(w/2)
             img_A = img[:, :half_w, :]
             img_B = img[:, half_w:, :]
+            #resize
+            img_A = pilutil.imresize(img_A, self.img_res)
+            img_B = pilutil.imresize(img_B, self.img_res)
             #filter edge
             if train_edge:
                 img_A = imutil.make_edge(img_A, blur_val=train_edge_blur_val , blur_fn=train_edge_blur_fn)
-            img_A = pilutil.imresize(img_A, self.img_res)
-            img_B = pilutil.imresize(img_B, self.img_res)
             #compute label
             fn = fn.split('\\')[-1] if not use_colab else fn.split('/')[-1]
             if fn[0] == '0' :

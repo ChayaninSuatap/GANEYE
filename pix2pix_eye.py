@@ -187,7 +187,7 @@ class Pix2Pix():
             epoch += self.init_epoch + 1
             for batch_i, (imgs_A, imgs_B, labels) in enumerate(
                 self.data_loader.load_batch(batch_size, False, add_noise, show_dataset=False, train_edge=train_edge,
-                    cache=cache, noise_value=30)
+                    cache=cache, noise_value=noise_value)
                 ):
                 #mode blue img (imgs_B)
                 imgs_B = self.make_imgb_with_label(imgs_B, labels)
@@ -292,6 +292,6 @@ class Pix2Pix():
 
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
-        dataset_name='eyes512', save_path='saved_model_eyes', dropout=0.2, img_size=(256, 256))
-    gan.train(epochs=999, batch_size=1, epoch_interval=10, train_on_colab=False, add_noise=True, train_edge=False,
-        noise_value=2, dis_noisy_label=True, train_edge_blur_fn=imutil.GAUSSIAN, train_edge_blur_val=10)
+        dataset_name='eyes512', save_path='saved_model_eyes', dropout=0.2, img_size=(512, 512))
+    gan.train(epochs=999, batch_size=1, epoch_interval=10, train_on_colab=False, add_noise=True, train_edge=True,
+        noise_value=2, dis_noisy_label=True, train_edge_blur_fn=imutil.MEDIAN, train_edge_blur_val=31)
