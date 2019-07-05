@@ -17,7 +17,8 @@ import matplotlib.pyplot as plt
 import random
 
 class DCGAN():
-    def __init__(self, img_rows=28, img_cols=28, img_channels=1, latent_dim=100, dataset_name='eyes512'):
+    def __init__(self, img_rows=28, img_cols=28, img_channels=1, latent_dim=100, dataset_name='eyes512',
+        gen_model_fn=None, dis_model_fn=None, initial_epoch=0):
         # Input shape
         self.img_rows = img_rows
         self.img_cols = img_cols
@@ -25,6 +26,7 @@ class DCGAN():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.latent_dim = latent_dim
         self.dataset_name = dataset_name
+        self.initial_epoch = initial_epoch
         optimizer = Adam(0.0002, 0.5)
 
         # Build and compile the discriminator
@@ -50,6 +52,11 @@ class DCGAN():
         # Trains the generator to fool the discriminator
         self.combined = Model(z, valid)
         self.combined.compile(loss='binary_crossentropy', optimizer=optimizer)
+
+        #load weights if defined
+        if gen_model_fn!=None and dis_model_fn!=None:
+            self.generator.load_weights(gen_model_fn)
+            self.discriminator.load_weights(dis_model_fn)
 
     def build_generator(self):
         def add_upsampling_layers(model, filter_n):
@@ -133,6 +140,7 @@ class DCGAN():
         g_losses = []
         dataset_gen = dataset_generator(batch_size)
         for epoch in range(epochs):
+            epoch += self.initial_epoch
             #fetch dataset
             imgs = np.array([dataset_gen.__next__()])
             #gen noise
@@ -165,8 +173,7 @@ class DCGAN():
 
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
-                plt.draw()
-                plt.pause(0.01)
+                plt.savefig('t/loss.png')
                 self.save_imgs(epoch)
                 #save model
                 self.discriminator.save_weights('t/dis.hdf5')
@@ -193,5 +200,6 @@ class DCGAN():
         plt.close()
 
 if __name__ == '__main__':
-    dcgan = DCGAN(img_rows=128, img_cols=128, img_channels=3, dataset_name='eyes512/train')
-    dcgan.train(epochs=999999, batch_size=1, save_interval=200)
+    dcgan = DCGAN(img_rows=128, img_cols=128, img_channels=3, dataset_name='eyes512/train',
+        gen_model_fn='t/gen.hdf5', dis_model_fn='t/dis.hdf5', initial_epoch=15000)
+    dcgan.train(epochs=999999, batch_size=1, save_interval=500)

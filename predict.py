@@ -12,7 +12,7 @@ img_h = 512
 
 print('loading model')
 o = Pix2Pix(gen_weights_fn='gen_ep-3400.hdf5', dis_weights_fn='dis_ep-3400.hdf5', load_for_predict=True, save_path='saved_model_eyes', img_size=(img_w,img_h))
-o_edge = Pix2Pix(gen_weights_fn='gen_ep-1000-edge.hdf5', dis_weights_fn='dis_ep-1000-edge.hdf5', load_for_predict=True, save_path='saved_model_eyes', img_size=(img_w, img_h))
+o_edge = Pix2Pix(gen_weights_fn='gen-1225-edge-median.hdf5', dis_weights_fn='dis-1225-edge-median.hdf5', load_for_predict=True, save_path='saved_model_eyes', img_size=(img_w, img_h))
 model = o.combined
 model_edge = o_edge.combined
 print('loaded')
@@ -31,7 +31,7 @@ for fn in os.listdir('my_blues'):
     pred = model.predict( xs)
     pred_edge = model_edge.predict( xs)
     im = ((pred[1][0] * 0.5 + 0.5)).astype('float32')
-    im_edge = (pred_edge[1][0]).astype('float32')
+    im_edge = (pred_edge[1][0]).astype('float32') * 2.1
     im_final = im_edge + im
 
     print(np.amin(im_edge), np.amax(im_edge))
