@@ -121,9 +121,11 @@ class Pix2Pix():
         d5 = conv2d(d4, self.gf*8, dropout_rate=dropout)
         d6 = conv2d(d5, self.gf*8, dropout_rate=dropout)
         d7 = conv2d(d6, self.gf*8, dropout_rate=dropout)
+        d8 = conv2d(d7, self.gf*8, dropout_rate=dropout)
 
         # Upsampling
-        u1 = deconv2d(d7, d6, self.gf*8, dropout_rate=dropout)
+        u0 = deconv2d(d8, d7, self.gf*8, dropout_rate=dropout)
+        u1 = deconv2d(u0, d6, self.gf*8, dropout_rate=dropout)
         u2 = deconv2d(u1, d5, self.gf*8, dropout_rate=dropout)
         u3 = deconv2d(u2, d4, self.gf*8, dropout_rate=dropout)
         u4 = deconv2d(u3, d3, self.gf*4, dropout_rate=dropout)
@@ -293,5 +295,5 @@ class Pix2Pix():
 if __name__ == '__main__':
     gan = Pix2Pix(init_epoch=0,
         dataset_name='eyes512', save_path='saved_model_eyes', dropout=0.2, img_size=(512, 512))
-    gan.train(epochs=999, batch_size=1, epoch_interval=10, train_on_colab=False, add_noise=True, train_edge=True,
-        noise_value=2, dis_noisy_label=True, train_edge_blur_fn=imutil.MEDIAN, train_edge_blur_val=31)
+    gan.train(epochs=999, batch_size=1, epoch_interval=10, train_on_colab=False, add_noise=True, train_edge=False,
+        noise_value=30, dis_noisy_label=True, train_edge_blur_fn=imutil.MEDIAN, train_edge_blur_val=31)
